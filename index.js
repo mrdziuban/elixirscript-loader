@@ -1,14 +1,17 @@
-var exec = require('child_process').exec;
+const exec = require('child_process').exec;
+const path = require('path');
 
 module.exports = function(source) {
   var callback = this.async();
-  var cmd = 'elixirscript "' + source.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '" -ex -stp elixirscript';
+  const tmp = path.join(__dirname, 'tmp');
+  const mod = path.basename(this.resourcePath, '.exjs');
+  const cmd = `elixirscript '${source.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}' --elixir -o '${tmp}'`;
+
   exec(cmd, function (error, stdout, stderr) {
-    if(error || stderr){
-      callback(error || stderr, null);
+    if (error) {
+      return callback(error, null);
     }
-    if(stdout){
-      callback(null, stdout);
-    }
+    const out = `import ${mod} from '${path.join(tmp, 'app', `Elixir.${mod}.js`)}'; export default ${mod};`
+    return callback(null, out);
   });
 };
