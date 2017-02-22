@@ -1,4 +1,5 @@
 const exec = require('child_process').exec;
+const fs = require('fs');
 const path = require('path');
 
 module.exports = function(source) {
@@ -9,6 +10,11 @@ module.exports = function(source) {
 
   exec(cmd, function (error, stdout, stderr) {
     if (error) { return callback(error, null); }
-    callback(null, `import ${mod} from '${path.join(tmp, 'app', `Elixir.${mod}.js`)}'; export default ${mod};`);
+    const out = fs.readFileSync(
+      path.join(tmp, 'app', `Elixir.${mod}.js`),
+      'utf8'
+    ).replace(/from '\.\.\/elixir\//g, `from '${tmp}/elixir/`);
+    callback(null, out);
   });
 };
+
